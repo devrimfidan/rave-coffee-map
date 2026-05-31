@@ -14,18 +14,6 @@ Welcome to my **Rave Coffee Subscription Journey Map**! This is an interactive, 
 
 ---
 
-## 🌟 The Subscription Experience
-
-As a very happy Rave Coffee member, this dashboard reflects my personal journey and appreciation for their high-quality roasts and meticulous curation. The map details:
-* **The Coffee Collection**: Over 30 delicious single-origins and signature blends received through the mail.
-* **Geocoded Origins**: Precision plotting using actual farm, washing station, and cooperative coordinates for single origins, and geocoding blend coffees directly to the real **Rave Coffee Roastery HQ in Cirencester, UK**.
-* **Premium Branded Gifts**: Tracking is inspired by all the excellent extra items Rave sends out with their memberships, including:
-  * 📝 Custom pencils
-  * 🎲 Engaging coffee quizzes
-  * 📖 Comprehensive brewing guides
-
----
-
 ## 🛠️ The Tech Stack
 
 This project was built from scratch and progressively polished using standard, high-performance web APIs and modern AI assistance:
