@@ -222,7 +222,7 @@
               <div style="font-family:var(--font-display);font-weight:900;font-size:62px;line-height:1;color:rgba(0,0,0,0.22);">${coffee.num}</div>
             </div>
             <div class="card-name-block" style="padding-right: 80px; margin-bottom: 20px;">
-              <div class="card-country" style="color: var(--rave-black); font-size: ${coffee.country === 'Blend' ? '28px' : '38px'}; line-height: 1.1;">${coffee.country === 'Blend' ? 'Rave Coffee HQ' : coffee.country}</div>
+              <div class="card-country" style="color: var(--rave-black); font-size: ${coffee.country === 'Blend' ? '28px' : '38px'}; line-height: 1.1;">${coffee.country === 'Blend' ? 'Rave Coffee Blend' : coffee.country}</div>
               ${coffee.country === 'Blend' ? `<div style="font-family:var(--font-mono); font-size:9.5px; font-weight:700; text-transform:uppercase; color:rgba(0,0,0,0.45); margin-top: 4px; margin-bottom: 2px; letter-spacing: 0.5px; line-height: 1.2;">Phoenix Way, Cirencester, GL7 1QG</div>` : ''}
               <div class="card-coffee-name" style="color: rgba(0,0,0,0.7);">${coffee.name}</div>
             </div>
@@ -267,14 +267,14 @@
     document.getElementById('modal-close').style.display = '';
     const items = coffees.map(c => `
       <div class="pin-list-item" data-id="${c.id}">
-        ${c.country === 'Blend' ? 'Rave Coffee HQ (UK)' : c.country} — ${c.name}
+        ${c.country === 'Blend' ? 'Rave Coffee Blend (UK)' : c.country} — ${c.name}
         <span>N°${c.num} · ${c.roastLabel} · ${c.flavours.join(', ')}</span>
       </div>
     `).join('');
     
     // Custom label for title depending on if it is a blend or farm
     const displayTitle = coffees[0].country === 'Blend' 
-      ? 'Rave Coffee HQ (UK)' 
+      ? 'Rave Coffee Blend (UK)' 
       : `${coffees[0].country} (${coffees[0].producers})`;
 
     modalContent.innerHTML = `
@@ -449,7 +449,7 @@
       <div class="drawer-item" data-id="${c.id}">
         <div class="drawer-item-top">
           <span class="drawer-item-num">N°${c.num}</span>
-          <span class="drawer-item-country">${c.country === 'Blend' ? 'Rave Coffee HQ (UK)' : c.country}</span>
+          <span class="drawer-item-country">${c.country === 'Blend' ? 'Rave Coffee Blend (UK)' : c.country}</span>
         </div>
         <div class="drawer-item-name">${c.name}</div>
         <div class="drawer-item-meta">
