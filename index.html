@@ -4,9 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rave Coffee — World Map</title>
+<meta name="description" content="An interactive world map of our personal Rave Coffee subscription collection. Discover 32 coffees across 14 countries with 3D physical-style flip tasting cards.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Barlow+Condensed:wght@700;800;900&display=swap" rel="stylesheet">
+<!-- Leaflet Map CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -29,176 +33,212 @@
     overflow: hidden;
   }
 
+  /* Custom scrollbar for lists and panels */
+  ::-webkit-scrollbar {
+    width: 6px; height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(26,22,18,0.2);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(245,200,66,0.3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--rave-yellow);
+  }
+
   /* ── HEADER ── */
   header {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000; /* High z-index to stay above Leaflet */
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 28px;
-    background: var(--rave-black);
-    border-bottom: 2px solid var(--rave-yellow);
-  }
-  .logo {
-    font-family: var(--font-brand);
-    font-size: 36px;
-    color: var(--rave-yellow);
-    letter-spacing: 2px;
-    line-height: 1;
-  }
-  .logo span {
-    display: inline-block;
-    width: 10px; height: 10px;
+    padding: 0 28px;
+    height: 70px;
     background: var(--rave-yellow);
-    border-radius: 50%;
-    margin-left: 2px;
-    vertical-align: middle;
-    transform: translateY(-4px);
+    border-top: 4px solid var(--rave-black);
+    border-bottom: 2px solid rgba(26, 22, 18, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   }
   .header-right {
     display: flex; align-items: center; gap: 24px;
   }
   .coffee-count {
     font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--rave-yellow);
+    font-size: 13px;
+    color: var(--rave-black);
     letter-spacing: 2px;
     text-transform: uppercase;
+    font-weight: 700;
   }
   .filter-row {
     display: flex; gap: 8px;
   }
   .filter-btn {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 12px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 5px 12px;
-    border: 1px solid rgba(245,200,66,0.3);
+    padding: 8px 16px;
+    border: 1px solid rgba(26, 22, 18, 0.25);
     background: transparent;
-    color: rgba(245,200,66,0.6);
+    color: rgba(26, 22, 18, 0.8);
     cursor: pointer;
-    transition: all 0.2s;
+    border-radius: 4px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .filter-btn:hover, .filter-btn.active {
-    background: var(--rave-yellow);
-    color: var(--rave-black);
-    border-color: var(--rave-yellow);
+    background: var(--rave-black);
+    color: var(--rave-yellow);
+    border-color: var(--rave-black);
+    box-shadow: 0 4px 12px rgba(26, 22, 18, 0.15);
   }
+
 
   /* ── MAP CONTAINER ── */
   #map-wrap {
     position: fixed;
-    top: 64px; left: 0; right: 0; bottom: 0;
+    top: 70px; left: 0; right: 0; bottom: 0;
     overflow: hidden;
+    background: #0d0b08; /* Dark backdrop behind leaflet dark matter tiles */
   }
-  #map-svg {
+  #map {
     width: 100%; height: 100%;
-    cursor: grab;
+    background: #0d0b08 !important;
   }
-  #map-svg:active { cursor: grabbing; }
-  #map-svg path {
-    fill: #2a2318;
-    stroke: #3d3528;
-    stroke-width: 0.5;
-    transition: fill 0.2s;
-  }
-  #map-svg path:hover { fill: #3d3528; }
 
-  /* ── PINS ── */
-  .pin-group { cursor: pointer; }
-  .pin-group:hover .pin-ring { opacity: 1; transform: scale(1.3); }
-  .pin-group:hover .pin-dot { transform: scale(1.2); }
+  /* Hide Leaflet's zoom buttons natively */
+  .leaflet-control-zoom {
+    display: none !important;
+  }
+
+  /* ── LEAFLET CUSTOM PINS ── */
+  .custom-pin-icon {
+    background: transparent !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+  
+  @keyframes pinPulse {
+    0% { transform: scale(0.95); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  
   .pin-ring {
-    fill: none;
-    stroke: var(--rave-yellow);
-    stroke-width: 1.5;
-    opacity: 0;
-    transition: all 0.25s;
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 16px; height: 16px;
+    margin-left: -8px; margin-top: -8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rave-yellow);
+    opacity: 0.8;
     transform-origin: center;
-    transform-box: fill-box;
-  }
-  .pin-dot {
-    fill: var(--rave-yellow);
-    transition: transform 0.25s;
-    transform-origin: center;
-    transform-box: fill-box;
-  }
-  .pin-dot.multi { fill: #F5C842; stroke: #fff; stroke-width: 1; }
-  .pin-number {
-    fill: var(--rave-black);
-    font-family: var(--font-mono);
-    font-size: 4px;
-    font-weight: 700;
-    text-anchor: middle;
-    dominant-baseline: central;
+    animation: pinPulse 2.2s infinite cubic-bezier(0.25, 0, 0, 1);
     pointer-events: none;
+  }
+  .pin-ring.multi {
+    width: 22px; height: 22px;
+    margin-left: -11px; margin-top: -11px;
+    border-color: #fff;
+  }
+  
+  .pin-dot {
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 10px; height: 10px;
+    margin-left: -5px; margin-top: -5px;
+    border-radius: 50%;
+    background: var(--rave-yellow);
+    box-shadow: 0 0 2px rgba(0,0,0,0.8);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s, box-shadow 0.25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .pin-dot.multi {
+    width: 15px; height: 15px;
+    margin-left: -7.5px; margin-top: -7.5px;
+    border: 1.5px solid #fff;
+  }
+  
+  .custom-pin-icon:hover .pin-dot {
+    transform: scale(1.25);
+    background: #fff;
+    box-shadow: 0 0 8px var(--rave-yellow);
+  }
+  .pin-number {
+    color: var(--rave-black);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    font-weight: 700;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  /* ── ACTIVE SELECTED PIN HIGH-VISIBILITY STYLES ── */
+  .custom-pin-icon.active-pin {
+    z-index: 1000 !important;
+  }
+  .custom-pin-icon.active-pin .pin-dot {
+    transform: scale(1.4) !important;
+  }
+  .custom-pin-icon.active-pin .pin-ring {
+    transform: scale(1) !important;
+  }
+
+  @keyframes activePinPulse {
+    0% { transform: scale(0.95); opacity: 0.9; }
+    50% { opacity: 0.9; }
+    100% { transform: scale(2.0); opacity: 0; }
   }
 
   /* ── MODAL OVERLAY ── */
   #modal-overlay {
-    display: none;
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(10,8,5,0.75);
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    position: fixed; inset: 0; z-index: 2000; /* Higher than header and leaflet controls */
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    display: block;
+    padding: 0;
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
   }
-  #modal-overlay.open { display: flex; }
+  #modal-overlay.open {
+    opacity: 1;
+    visibility: visible;
+  }
+  #modal-content {
+    position: fixed;
+    top: 90px; right: 24px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: auto;
+    z-index: 2002;
+  }
 
-  /* ── CARD ── */
+  /* ── TASTING CARD ── */
   .rave-card {
-    width: 340px;
-    min-height: 500px;
-    border-radius: 4px;
+    width: 360px;
+    background: var(--rave-navy);
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,255,255,0.05);
-    animation: cardPop 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    position: relative;
-    flex-shrink: 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.06);
+    animation: cardPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
   }
   @keyframes cardPop {
-    from { opacity: 0; transform: scale(0.85) translateY(20px); }
+    from { opacity: 0; transform: scale(0.85) translateY(30px); }
     to   { opacity: 1; transform: scale(1) translateY(0); }
   }
 
-  /* card front */
-  .card-front {
-    padding: 22px 22px 18px;
-    position: relative;
-    min-height: 280px;
-  }
-  .card-number {
-    position: absolute; top: 16px; right: 18px;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 52px;
-    line-height: 1;
-    color: rgba(0,0,0,0.2);
-  }
-  .card-no-label {
-    position: absolute; top: 14px; right: 18px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: rgba(0,0,0,0.35);
-  }
-  .card-number-val {
-    position: absolute; top: 22px; right: 18px;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 48px;
-    line-height: 1;
-    color: rgba(0,0,0,0.25);
-  }
-  .card-name-block {
-    padding-right: 80px;
-    margin-bottom: 20px;
-  }
   .card-country {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 32px;
+    font-size: 38px;
     line-height: 1;
     letter-spacing: 1px;
     color: var(--rave-black);
@@ -207,7 +247,7 @@
   .card-coffee-name {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 24px;
+    font-size: 28px;
     line-height: 1.1;
     letter-spacing: 0.5px;
     color: rgba(0,0,0,0.7);
@@ -218,11 +258,11 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 14px;
-    margin-bottom: 18px;
+    margin-bottom: 8px;
   }
   .card-label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -231,91 +271,48 @@
   }
   .card-roast-text {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 15px;
     font-weight: 400;
     color: rgba(0,0,0,0.75);
     margin-bottom: 5px;
   }
   .bean-pips {
-    display: flex; gap: 3px;
+    display: flex; gap: 4px;
+    align-items: center;
   }
-  .bean-pip {
-    width: 14px; height: 14px;
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    border: 1.5px solid rgba(0,0,0,0.4);
-    transform: rotate(-30deg);
-  }
-  .bean-pip.filled { background: rgba(0,0,0,0.5); border-color: rgba(0,0,0,0.5); }
 
   .tastes-list {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 15px;
     color: rgba(0,0,0,0.8);
     line-height: 1.8;
   }
 
-  /* brew checkboxes */
-  .brew-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5px 10px;
-    border-top: 1px solid rgba(0,0,0,0.15);
-    padding-top: 14px;
-    margin-top: 4px;
-  }
-  .brew-item {
-    display: flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: rgba(0,0,0,0.55);
-  }
-  .brew-box {
-    width: 12px; height: 12px;
-    border: 1.5px solid rgba(0,0,0,0.35);
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .brew-box.checked::after {
-    content: '';
-    display: block;
-    width: 6px; height: 5px;
-    border-bottom: 2px solid rgba(0,0,0,0.7);
-    border-left: 2px solid rgba(0,0,0,0.7);
-    transform: rotate(-45deg) translateY(-1px);
-  }
-
-  /* card back */
-  .card-back {
-    background: var(--rave-navy);
-  }
-  .card-back-table {
-    background: var(--card-pink);
-    padding: 14px 18px;
-  }
+  /* card details table (dark themed) */
   .back-row {
     display: grid;
-    grid-template-columns: 110px 1fr;
-    border-bottom: 1px solid rgba(0,0,0,0.2);
-    padding: 9px 0;
+    grid-template-columns: 120px 1fr; /* Expanded label column slightly for larger fonts */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px 0;
     align-items: start;
     gap: 8px;
   }
   .back-row:last-child { border-bottom: none; }
   .back-row-label {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: rgba(0,0,0,0.6);
+    color: rgba(255,255,255,0.4);
     display: flex;
     align-items: center;
     gap: 6px;
   }
   .back-row-val {
     font-family: var(--font-mono);
-    font-size: 10px;
-    color: rgba(0,0,0,0.8);
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
     line-height: 1.5;
   }
   .back-icon {
@@ -323,12 +320,12 @@
     opacity: 0.6;
   }
   .roastery-notes {
-    padding: 16px 18px;
+    padding: 16px 20px;
     background: var(--rave-navy);
   }
   .roastery-title {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -337,53 +334,29 @@
   }
   .roastery-text {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 14px;
     color: rgba(255,255,255,0.7);
     line-height: 1.7;
   }
 
-  /* rave footer on card */
-  .card-rave-footer {
-    background: var(--rave-navy);
-    padding: 14px 18px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .card-rave-logo {
-    font-family: var(--font-brand);
-    font-size: 28px;
-    color: white;
-    letter-spacing: 3px;
-  }
-  .card-rave-logo .reg { font-size: 12px; vertical-align: super; }
-  .card-website {
+  .back-to-list-btn {
     font-family: var(--font-mono);
-    font-size: 8px;
-    color: rgba(255,255,255,0.35);
-    letter-spacing: 1px;
-  }
-
-  /* flip control */
-  .card-flip-btn {
-    position: absolute; bottom: -14px; right: 0; left: 0;
-    display: flex; justify-content: center;
-  }
-  .flip-btn {
-    font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    background: rgba(0,0,0,0.5);
-    color: var(--rave-yellow);
-    border: 1px solid var(--rave-yellow);
-    padding: 5px 14px;
+    background: rgba(255,255,255,0.05);
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 7px 16px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
   }
-  .flip-btn:hover { background: var(--rave-yellow); color: var(--rave-black); }
+  .back-to-list-btn:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: #fff; }
 
-  /* close */
+  /* close button */
   .modal-close {
-    position: fixed; top: 80px; right: 24px;
+    position: fixed; top: 90px; right: 400px; /* 24px margin + 360px card + 16px gap */
     width: 36px; height: 36px;
     background: var(--rave-yellow);
     border: none; cursor: pointer;
@@ -391,49 +364,64 @@
     font-size: 18px;
     color: var(--rave-black);
     font-weight: 700;
-    z-index: 201;
-    transition: transform 0.2s;
+    z-index: 2003; /* Match modal overlay */
+    border-radius: 4px;
+    pointer-events: auto;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
   }
-  .modal-close:hover { transform: rotate(90deg); }
+  .modal-close:hover { transform: rotate(90deg); background-color: #fff; }
 
   /* multi-pin popup list */
   .pin-list {
-    background: var(--rave-black);
+    background: rgba(26,22,18,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 2px solid var(--rave-yellow);
-    padding: 16px;
-    min-width: 220px;
-    animation: cardPop 0.2s ease;
+    padding: 20px;
+    min-width: 280px;
+    max-width: 360px;
+    border-radius: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.65);
+    animation: listPop 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes listPop {
+    from { opacity: 0; transform: scale(0.9) translateY(15px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
   }
   .pin-list-title {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 12px;
     font-weight: 700;
     letter-spacing: 2px;
     color: var(--rave-yellow);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     text-transform: uppercase;
+    border-bottom: 1px solid rgba(245,200,66,0.25);
+    padding-bottom: 6px;
   }
   .pin-list-item {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 16px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     padding: 8px 10px;
     cursor: pointer;
     border-left: 2px solid transparent;
-    transition: all 0.15s;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     color: var(--rave-cream);
   }
   .pin-list-item:hover {
     border-left-color: var(--rave-yellow);
     color: var(--rave-yellow);
     padding-left: 14px;
+    background: rgba(245,200,66,0.04);
   }
   .pin-list-item span {
     font-family: var(--font-mono);
-    font-size: 9px;
-    color: rgba(255,255,255,0.35);
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
     font-weight: 400;
     display: block;
     letter-spacing: 1px;
@@ -445,48 +433,61 @@
   .zoom-controls {
     position: fixed; bottom: 28px; right: 24px;
     display: flex; flex-direction: column; gap: 2px;
-    z-index: 100;
+    z-index: 1000; /* High z-index to float above leaflet */
+    background: rgba(26, 22, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    border-radius: 6px;
+    padding: 2px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
   .zoom-btn {
     width: 36px; height: 36px;
-    background: var(--rave-black);
-    border: 1px solid var(--rave-yellow);
+    background: transparent;
+    border: none;
     color: var(--rave-yellow);
     font-size: 20px;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
     font-family: var(--font-mono);
+    border-radius: 4px;
   }
   .zoom-btn:hover { background: var(--rave-yellow); color: var(--rave-black); }
 
   /* legend */
   .legend {
     position: fixed; bottom: 28px; left: 24px;
-    z-index: 100;
-    background: rgba(26,22,18,0.9);
-    border: 1px solid rgba(245,200,66,0.25);
+    z-index: 1000; /* High z-index to float above leaflet */
+    background: rgba(26, 22, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 200, 66, 0.2);
     padding: 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   }
   .legend-title {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     letter-spacing: 2px;
-    color: rgba(245,200,66,0.5);
+    color: rgba(245,200,66,0.6);
     text-transform: uppercase;
     margin-bottom: 8px;
   }
   .legend-item {
     display: flex; align-items: center; gap: 8px;
     font-family: var(--font-mono);
-    font-size: 9px;
-    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    color: rgba(255,255,255,0.55);
     margin-bottom: 5px;
     letter-spacing: 1px;
   }
+  .legend-item:last-child { margin-bottom: 0; }
   .legend-dot {
-    width: 10px; height: 10px;
+    width: 12px; height: 12px;
     border-radius: 50%;
     background: var(--rave-yellow);
     flex-shrink: 0;
@@ -495,13 +496,400 @@
     background: var(--rave-yellow);
     border: 1.5px solid white;
   }
+
+  /* Info Button Inline next to title */
+  .info-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 6px;
+    cursor: pointer;
+    color: var(--rave-black);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.55;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .info-btn:hover {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+
+  /* Floating bottom center map disclaimer footnote */
+  .map-disclaimer {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+    z-index: 1000;
+    background: rgba(26, 22, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    padding: 8px 16px;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.55);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    pointer-events: auto;
+    text-align: center;
+  }
+  .map-disclaimer a {
+    color: var(--rave-yellow);
+    text-decoration: underline;
+    font-weight: 700;
+    transition: color 0.2s;
+  }
+  .map-disclaimer a:hover {
+    color: #fff;
+  }
+
+  @media (max-width: 900px) {
+    .map-disclaimer {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 380px;
+      box-sizing: border-box;
+      font-size: 9px;
+      padding: 6px 10px;
+      line-height: 1.3;
+    }
+    .legend {
+      bottom: 75px !important;
+    }
+    .zoom-controls {
+      bottom: 75px !important;
+    }
+  }
+
+  /* ── SIDEBAR DRAWER TRIGGER ── */
+  .drawer-trigger {
+    position: fixed; top: 84px; left: 24px;
+    z-index: 1000; /* High z-index to float above leaflet */
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 18px;
+    background: rgba(26, 22, 18, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    border-radius: 6px;
+    color: var(--rave-yellow);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .drawer-trigger:hover {
+    background: var(--rave-yellow);
+    color: var(--rave-black);
+    border-color: var(--rave-yellow);
+    box-shadow: 0 8px 24px rgba(245, 200, 66, 0.25);
+  }
+  body.drawer-open .drawer-trigger {
+    transform: translateX(-150%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ── SIDEBAR DRAWER ── */
+  .sidebar-drawer {
+    position: fixed;
+    top: 70px; left: 0; bottom: 0;
+    width: 340px;
+    z-index: 1500; /* Below overlays, above map controls */
+    background: rgba(26, 22, 18, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(245, 200, 66, 0.15);
+    box-shadow: 20px 0 60px rgba(0, 0, 0, 0.65);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .sidebar-drawer.open {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid rgba(245, 200, 66, 0.1);
+  }
+  .drawer-title {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: 1px;
+    color: var(--rave-yellow);
+    text-transform: uppercase;
+  }
+  .drawer-close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+  }
+  .drawer-close:hover {
+    color: var(--rave-yellow);
+    transform: rotate(90deg);
+  }
+
+  .drawer-search-wrap {
+    padding: 16px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  .drawer-search {
+    width: 100%;
+    background: rgba(26, 22, 18, 0.6);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+    border-radius: 4px;
+    padding: 10px 14px;
+    color: var(--rave-cream);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .drawer-search:focus {
+    border-color: var(--rave-yellow);
+    box-shadow: 0 0 8px rgba(245, 200, 66, 0.2);
+  }
+  .drawer-search::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .drawer-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 16px;
+  }
+
+  /* Drawer Coffee Item Cards */
+  .drawer-item {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 6px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .drawer-item:hover {
+    background: rgba(245, 200, 66, 0.04);
+    border-color: rgba(245, 200, 66, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  }
+  .drawer-item-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 6px;
+  }
+  .drawer-item-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--rave-yellow);
+    background: rgba(245, 200, 66, 0.1);
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.5px;
+  }
+  .drawer-item-country {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  .drawer-item-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    color: var(--rave-cream);
+    text-transform: uppercase;
+    line-height: 1.2;
+    margin-bottom: 4px;
+  }
+  .drawer-item-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.35);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Hamburger Menu Toggle Button */
+  .menu-toggle {
+    display: none; /* Hidden on desktop */
+    align-items: center; justify-content: center;
+    width: 40px; height: 40px;
+    background: transparent;
+    border: 1px solid rgba(26, 22, 18, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--rave-black);
+    transition: all 0.2s;
+  }
+  .menu-toggle:hover {
+    background: rgba(26, 22, 18, 0.05);
+    border-color: var(--rave-black);
+  }
+  /* Hamburger Icon Line Animation */
+  .menu-toggle-icon {
+    display: flex; flex-direction: column; gap: 4px;
+    width: 18px;
+  }
+  .menu-toggle-icon span {
+    display: block; width: 18px; height: 2px;
+    background: var(--rave-black);
+    border-radius: 1px;
+    transition: transform 0.3s, opacity 0.3s;
+  }
+  /* Animate to "✕" when active */
+  .menu-toggle.active .menu-toggle-icon span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .menu-toggle.active .menu-toggle-icon span:nth-child(2) {
+    opacity: 0;
+  }
+  .menu-toggle.active .menu-toggle-icon span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* ── MOBILE RESPONSIVENESS ── */
+  @media (max-width: 767px) {
+    .menu-toggle {
+      display: flex; /* Show toggle */
+    }
+    
+    header {
+      padding: 0 16px;
+    }
+
+    .header-right {
+      position: fixed;
+      top: 70px; left: 0; right: 0;
+      background: var(--rave-yellow);
+      border-bottom: 3px solid var(--rave-black);
+      flex-direction: column;
+      padding: 24px;
+      gap: 20px;
+      transform: translateY(-120%);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      z-index: 999;
+    }
+    .header-right.open {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .filter-row {
+      flex-direction: column;
+      width: 100%;
+      gap: 8px;
+    }
+    .filter-btn {
+      width: 100%;
+      text-align: center;
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+    .coffee-count {
+      width: 100%;
+      text-align: center;
+      padding-top: 14px;
+      border-top: 1px solid rgba(26, 22, 18, 0.15);
+      font-size: 12px;
+    }
+
+    /* Adjust sliding drawer trigger to float neatly under zoom controls */
+    .drawer-trigger {
+      top: auto; bottom: 84px; left: 24px;
+    }
+    body.drawer-open .drawer-trigger {
+      transform: translateY(150%);
+    }
+
+    /* Sizing adjustments for sidebar drawer on small phones */
+    .sidebar-drawer {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    /* Scaling constraints for tasting cards on ultra-small screens */
+    .rave-card {
+      max-width: 320px;
+    }
+    .card-country {
+      font-size: 32px;
+    }
+    .card-coffee-name {
+      font-size: 24px;
+    }
+    .back-row {
+      grid-template-columns: 105px 1fr;
+    }
+
+    /* Mobile Modal Overlay - restore Dark Spotlight Blur Overlay */
+    #modal-overlay {
+      background: rgba(10, 8, 5, 0.8) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
+      pointer-events: auto !important;
+      display: grid !important;
+      place-items: center !important;
+      padding: 80px 20px 40px !important;
+    }
+    #modal-content {
+      position: relative !important;
+      top: auto !important; right: auto !important;
+      margin: auto !important;
+    }
+    .modal-close {
+      position: fixed !important;
+      top: 80px !important; right: 24px !important;
+    }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">RAVE<span></span></div>
-  <div class="header-right">
+  <div style="display: flex; align-items: center; gap: 20px;">
+    <img src="https://ravecoffee.co.uk/cdn/shop/files/Rave_Coffee_Logo_New_Jun_2024_115x43_c520a1f7-4d51-46d2-b79e-829aaad17219_250x.svg?v=1718718423" alt="Rave Coffee" style="height: 44px;">
+    <span style="font-family: var(--font-display); font-weight: 800; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; color: var(--rave-black); display: inline-flex; align-items: center; gap: 8px; padding-left: 16px; border-left: 2px solid rgba(26,22,18,0.25); line-height: 1.1;">
+      Coffee Journey
+      <button id="disclaimer-trigger" class="info-btn" title="About & Disclaimer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4" />
+          <path d="M12 8h.01" />
+        </svg>
+      </button>
+    </span>
+  </div>
+  <div class="header-right" id="header-right">
     <div class="filter-row" id="filter-row">
       <button class="filter-btn active" data-filter="all">All</button>
       <button class="filter-btn" data-filter="Africa">Africa</button>
@@ -511,13 +899,35 @@
     </div>
     <div class="coffee-count" id="coffee-count">32 coffees</div>
   </div>
+  <button class="menu-toggle" id="menu-toggle" aria-label="Toggle navigation menu">
+    <div class="menu-toggle-icon">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </button>
 </header>
 
+<button class="drawer-trigger" id="drawer-trigger">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle;"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+  <span>COFFEE LIST</span>
+</button>
+
+<div class="sidebar-drawer" id="sidebar-drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Coffee Collection</div>
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <div class="drawer-search-wrap">
+    <input type="text" class="drawer-search" id="drawer-search" placeholder="Search coffees or flavors...">
+  </div>
+  <div class="drawer-list" id="drawer-list">
+    <!-- Rendered dynamically -->
+  </div>
+</div>
+
 <div id="map-wrap">
-  <svg id="map-svg" viewBox="0 0 1000 500" xmlns="http://www.w3.org/2000/svg">
-    <g id="countries"></g>
-    <g id="pins"></g>
-  </svg>
+  <div id="map"></div>
 </div>
 
 <div id="modal-overlay">
@@ -535,6 +945,10 @@
   <div class="legend-title">Map Key</div>
   <div class="legend-item"><div class="legend-dot"></div>Single origin</div>
   <div class="legend-item"><div class="legend-dot multi"></div>Multiple coffees</div>
+</div>
+
+<div class="map-disclaimer">
+  Personal Fan Project. Not affiliated with/endorsed by Rave Coffee. Verify official details at <a href="https://ravecoffee.co.uk/" target="_blank">ravecoffee.co.uk</a>.
 </div>
 
 <script src="coffees.js"></script>

@@ -1,95 +1,107 @@
-// ── MAP + INTERACTION ENGINE ──────────────────────────────────────────────
+// ── LEAFLET MAP + INTERACTION ENGINE ────────────────────────────────────────
 
 (function () {
   'use strict';
 
-  // ── State
-  let scale = 1, tx = 0, ty = 0;
-  let isDragging = false, startX = 0, startY = 0, startTx = 0, startTy = 0;
+  // ── State & Elements
   let activeFilter = 'all';
   let currentCard = null;
   let showingFront = true;
+  let markers = [];
 
-  const svg = document.getElementById('map-svg');
-  const pinsGroup = document.getElementById('pins');
-  const countriesGroup = document.getElementById('countries');
   const overlay = document.getElementById('modal-overlay');
   const modalContent = document.getElementById('modal-content');
   const countEl = document.getElementById('coffee-count');
 
-  // ── Simplified world map paths (Natural Earth projection, 1000x500 viewport)
-  // Key land masses as simplified SVG paths
-  const LAND_PATHS = [
-    // North America
-    { id: 'north-america', d: 'M 125,90 L 155,75 L 195,70 L 220,80 L 245,85 L 260,100 L 265,120 L 255,140 L 240,155 L 220,170 L 200,180 L 180,190 L 165,210 L 155,230 L 150,250 L 155,265 L 165,270 L 160,280 L 150,275 L 135,260 L 120,240 L 110,220 L 105,200 L 100,175 L 105,150 L 115,130 L 120,110 Z' },
-    // Greenland
-    { id: 'greenland', d: 'M 310,35 L 340,25 L 370,28 L 385,45 L 375,65 L 355,75 L 330,70 L 315,55 Z' },
-    // South America
-    { id: 'south-america', d: 'M 230,255 L 250,248 L 270,252 L 290,260 L 305,280 L 310,305 L 305,330 L 295,355 L 285,375 L 270,390 L 255,400 L 245,395 L 235,375 L 230,350 L 225,320 L 220,295 L 222,275 Z' },
-    // Europe
-    { id: 'europe', d: 'M 450,80 L 475,72 L 500,70 L 515,78 L 520,92 L 510,105 L 495,112 L 480,118 L 468,128 L 458,122 L 448,110 L 445,95 Z' },
-    // Scandinavia
-    { id: 'scandinavia', d: 'M 475,52 L 490,45 L 502,50 L 508,65 L 498,78 L 483,80 L 472,72 Z' },
-    // UK & Ireland
-    { id: 'uk', d: 'M 448,78 L 458,72 L 466,78 L 462,90 L 452,92 L 445,85 Z' },
-    // Africa
-    { id: 'africa', d: 'M 475,140 L 500,132 L 530,130 L 555,135 L 575,145 L 588,165 L 592,190 L 590,220 L 582,250 L 570,278 L 555,300 L 540,315 L 525,320 L 510,315 L 498,300 L 490,275 L 482,248 L 476,220 L 472,195 L 470,168 Z' },
-    // Madagascar
-    { id: 'madagascar', d: 'M 570,275 L 578,265 L 583,280 L 580,295 L 572,300 L 568,288 Z' },
-    // Russia / North Asia
-    { id: 'russia', d: 'M 510,52 L 560,42 L 620,38 L 680,42 L 730,48 L 770,58 L 790,72 L 785,90 L 760,100 L 720,105 L 670,108 L 620,108 L 575,105 L 540,98 L 518,88 L 510,72 Z' },
-    // Middle East
-    { id: 'middle-east', d: 'M 555,130 L 580,122 L 608,125 L 625,138 L 630,155 L 618,165 L 600,168 L 580,162 L 562,150 Z' },
-    // South Asia
-    { id: 'south-asia', d: 'M 628,140 L 665,132 L 700,138 L 718,152 L 715,172 L 700,185 L 680,192 L 658,188 L 640,175 L 630,158 Z' },
-    // Southeast Asia
-    { id: 'se-asia', d: 'M 710,160 L 740,152 L 760,158 L 768,172 L 762,185 L 748,190 L 730,185 L 715,175 Z' },
-    // Indonesia / Sumatra
-    { id: 'indonesia', d: 'M 730,270 L 758,265 L 782,268 L 792,278 L 788,288 L 768,292 L 745,288 L 732,280 Z' },
-    // Java
-    { id: 'java', d: 'M 748,295 L 775,292 L 790,298 L 786,306 L 765,308 L 748,304 Z' },
-    // East Asia
-    { id: 'east-asia', d: 'M 735,100 L 778,95 L 810,100 L 825,118 L 818,138 L 798,148 L 770,148 L 748,140 L 735,125 Z' },
-    // Japan
-    { id: 'japan', d: 'M 812,105 L 824,98 L 832,108 L 828,122 L 818,125 L 810,115 Z' },
-    // Australia
-    { id: 'australia', d: 'M 762,330 L 800,322 L 835,325 L 858,340 L 862,360 L 850,378 L 828,385 L 800,382 L 775,372 L 758,355 L 752,338 Z' },
-    // New Zealand
-    { id: 'new-zealand', d: 'M 880,372 L 888,362 L 895,372 L 890,385 L 882,388 Z' },
-    // Central America
-    { id: 'central-america', d: 'M 175,235 L 195,228 L 215,232 L 228,245 L 222,255 L 205,258 L 188,252 L 178,242 Z' },
-    // Caribbean
-    { id: 'caribbean', d: 'M 222,215 L 250,208 L 255,218 L 240,224 L 222,222 Z' },
-    // Central Asia
-    { id: 'central-asia', d: 'M 600,108 L 650,102 L 680,108 L 688,128 L 668,138 L 635,138 L 608,128 L 598,118 Z' },
-    // Arabia
-    { id: 'arabia', d: 'M 570,160 L 600,155 L 620,162 L 628,178 L 620,192 L 600,198 L 578,192 L 565,178 Z' },
-    // Horn of Africa / Somalia
-    { id: 'horn-africa', d: 'M 575,215 L 598,205 L 612,215 L 610,232 L 595,240 L 578,235 Z' },
-    // West Africa
-    { id: 'west-africa', d: 'M 440,165 L 475,158 L 490,168 L 488,185 L 470,192 L 448,188 L 435,178 Z' },
-  ];
+  // Drawer Elements
+  const drawer = document.getElementById('sidebar-drawer');
+  const drawerTrigger = document.getElementById('drawer-trigger');
+  const drawerClose = document.getElementById('drawer-close');
+  const drawerSearch = document.getElementById('drawer-search');
+  const drawerList = document.getElementById('drawer-list');
+  const disclaimerTrigger = document.getElementById('disclaimer-trigger');
 
-  // ── Build the land paths
-  LAND_PATHS.forEach(({ id, d }) => {
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', d);
-    path.setAttribute('id', id);
-    countriesGroup.appendChild(path);
-  });
+  // Mobile Menu Elements
+  const menuToggle = document.getElementById('menu-toggle');
+  const headerRight = document.getElementById('header-right');
 
-  // ── Group coffees by location (cluster nearby pins)
+  // ── Coffee Farm Geographical Coordinates Lookup
+  const COFFEE_COORDS = {
+    1: [-8.90, 33.45],       // Tanzania: Mbili Twiga
+    2: [2.15, -75.90],       // Colombia: El Carmen
+    3: [21.50, -104.90],     // Mexico: Terruño Nayarita
+    4: [9.65, -83.97],       // Costa Rica: Coope Dota (Tarrazu)
+    5: [12.87, 74.84],       // India: Monsoon Malabar (Malabar Coast)
+    6: [5.88, 38.98],        // Ethiopia: Bookkisa (Guji Zone)
+    7: [1.15, 34.45],        // Uganda: Clarke Farm Washed (Mount Elgon)
+    8: [-5.96, -78.85],      // Peru: Elver Coronel (Cajamarca)
+    9: [14.46, -90.44],      // Guatemala: Nueva Era (Fraijanes)
+    10: [-8.95, 33.20],      // Tanzania: Korongo (Mbeya Region)
+    11: [-2.22, 29.14],      // Rwanda: Nyamsheke Hell's (Nyamasheke)
+    12: [6.75, 38.45],       // Ethiopia: Kebena (Sidama Zone)
+    13: [-0.50, 37.30],      // Kenya: Sasini (Kirinyaga)
+    14: [10.10, -84.38],     // Costa Rica: Hermosa Honey (West Valley)
+    15: [14.53, -90.93],     // Guatemala: Acatenango (Acatenango Valley)
+    16: [-9.93, -76.24],     // Peru: Churupampa (Huánuco)
+    17: [6.16, 38.20],       // Ethiopia: Simama (Yirgacheffe)
+    18: [4.69, 96.85],       // Indonesia: Permata Gayo (Aceh, Sumatra)
+    19: [12.92, -85.92],     // Nicaragua: Matagalpa
+    20: [1.15, 34.45],       // Uganda: Clarke Farm Natural (Mount Elgon - EXACT MATCH)
+    21: [4.87, -74.56],      // Colombia: Viani (Cundinamarca)
+    22: [-21.65, -46.40],    // Brazil: Sertãozinho Lot 548 (Minas Gerais)
+    23: [-1.35, 34.37],      // Tanzania: Tarime Natural (Tarime District)
+    24: [-21.65, -46.40],    // Brazil: Sertãozinho Lot 574 (Minas Gerais - EXACT MATCH)
+    25: [-21.80, -45.90],    // Brazil: Fazenda Campestre (Sul de Minas)
+    26: [-0.42, 36.95],      // Kenya: Asali AB (Nyeri)
+    27: [4.50, -75.70],      // Colombia: Racafé Crecer (Various regions)
+    28: [2.28, 98.88],       // Indonesia: Wahana Estate (Lintong, Sumatra)
+    29: [51.71195, -1.97025], // Blend: Espresso Blend (Rave HQ UK)
+    30: [51.71195, -1.97025], // Blend: Mocha Java Blend (Rave HQ - EXACT MATCH)
+    31: [51.71195, -1.97025], // Blend: The Italian Job (Rave HQ - EXACT MATCH)
+    32: [-2.48, 29.47]       // Rwanda: Gito (Nyamagabe)
+  };
+
+  // ── Continent Viewport Coordinates for Mobile Fly-To Transitions
+  const CONTINENT_VIEWS = {
+    "Africa": { center: [2.0, 30.0], zoom: 3.5 },
+    "Americas": { center: [4.0, -72.0], zoom: 3.2 },
+    "Asia": { center: [10.0, 95.0], zoom: 3.5 },
+    "Blend": { center: [51.71195, -1.97025], zoom: 4.5 },
+    "all": { center: [15.0, -10.0], zoom: 2.2 }
+  };
+
+  // ── Initialize Leaflet Map
+  // Center world view [15, -10] at zoom level 2.5
+  const map = L.map('map', {
+    zoomControl: false,
+    minZoom: 2,
+    maxZoom: 7,
+    maxBounds: [[-85, -180], [85, 180]],
+    maxBoundsViscosity: 1.0
+  }).setView([15, -10], 2.5);
+
+  // CartoDB Dark Matter tile layer to match Rave dark aesthetic
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20
+  }).addTo(map);
+
+  // ── Group coffees by filter
   function getFilteredCoffees() {
     if (activeFilter === 'all') return COFFEES;
     return COFFEES.filter(c => c.region === activeFilter);
   }
 
-  // ── Cluster coffees by country for map grouping
-  function clusterByCountry(coffees) {
+  // ── Cluster coffees by exact geocoordinates to support multiple coffees at the same spot
+  function clusterByCoordinates(coffees) {
     const clusters = {};
     coffees.forEach(c => {
-      const key = c.country + '_' + Math.round(c.coords.x / 15) + '_' + Math.round(c.coords.y / 15);
-      if (!clusters[key]) clusters[key] = { coffees: [], coords: c.coords };
+      const coords = COFFEE_COORDS[c.id] || COFFEE_COORDS[29];
+      const key = `${coords[0].toFixed(5)},${coords[1].toFixed(5)}`;
+      if (!clusters[key]) {
+        clusters[key] = { coords, coffees: [] };
+      }
       clusters[key].coffees.push(c);
     });
     return Object.values(clusters);
@@ -97,40 +109,35 @@
 
   // ── Render pins
   function renderPins() {
-    pinsGroup.innerHTML = '';
+    // Clear old markers from leaflet map
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
     const coffees = getFilteredCoffees();
     countEl.textContent = coffees.length + ' coffee' + (coffees.length !== 1 ? 's' : '');
 
-    const clusters = clusterByCountry(coffees);
+    const clusters = clusterByCoordinates(coffees);
     clusters.forEach(cluster => {
-      const { coffees: cs, coords } = cluster;
+      const { coords, coffees: cs } = cluster;
       const isMulti = cs.length > 1;
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', 'pin-group');
-      g.setAttribute('transform', `translate(${coords.x}, ${coords.y})`);
 
-      // Pulse ring
-      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      ring.setAttribute('r', isMulti ? 10 : 8);
-      ring.setAttribute('class', 'pin-ring');
-      g.appendChild(ring);
+      // Custom HTML pin icon utilizing CSS pulsing effects
+      const icon = L.divIcon({
+        className: 'custom-pin-icon',
+        html: `
+          <div class="pin-ring${isMulti ? ' multi' : ''}"></div>
+          <div class="pin-dot${isMulti ? ' multi' : ''}">
+            ${isMulti ? `<span class="pin-number">${cs.length}</span>` : ''}
+          </div>
+        `,
+        iconSize: isMulti ? [22, 22] : [16, 16],
+        iconAnchor: isMulti ? [11, 11] : [8, 8]
+      });
 
-      // Main dot
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('r', isMulti ? 7 : 5);
-      dot.setAttribute('class', 'pin-dot' + (isMulti ? ' multi' : ''));
-      g.appendChild(dot);
-
-      if (isMulti) {
-        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        text.setAttribute('class', 'pin-number');
-        text.setAttribute('y', '0');
-        text.textContent = cs.length;
-        g.appendChild(text);
-      }
-
-      g.addEventListener('click', (e) => {
-        e.stopPropagation();
+      const marker = L.marker(coords, { icon: icon }).addTo(map);
+      marker.coffeeIds = cs.map(c => c.id);
+      
+      marker.on('click', () => {
         if (cs.length === 1) {
           openCard(cs[0]);
         } else {
@@ -138,139 +145,148 @@
         }
       });
 
-      pinsGroup.appendChild(g);
+      markers.push(marker);
     });
+
+    updateActivePinHighlight();
   }
 
-  // ── Card HTML builder
-  function buildCardFront(coffee) {
-    const pips = Array.from({ length: 5 }, (_, i) =>
-      `<div class="bean-pip${i < coffee.roast ? ' filled' : ''}"></div>`
-    ).join('');
+  // ── Open single card modal
+  function openCard(coffee, fromList = null) {
+    document.getElementById('modal-close').style.display = '';
+    currentCard = coffee;
+
+    // Generate dynamic SVG coffee bean pips
+    const pips = Array.from({ length: 5 }, (_, i) => {
+      const isFilled = i < coffee.roast;
+      const strokeColor = isFilled ? coffee.cardColor : 'rgba(0,0,0,0.4)';
+      const outerFill = isFilled ? 'rgba(0,0,0,0.5)' : 'none';
+      const outerStroke = isFilled ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.4)';
+      return `
+        <svg class="bean-pip-svg" viewBox="0 0 24 24" width="16" height="16" style="transform: rotate(-30deg); display: inline-block; vertical-align: middle; flex-shrink: 0;">
+          <path d="M12,2 C17.5,2 22,6.5 22,12 C22,17.5 17.5,22 12,22 C6.5,22 2,17.5 2,12 C2,6.5 6.5,2 12,2 Z" fill="${outerFill}" stroke="${outerStroke}" stroke-width="2" />
+          <path d="M12,2 C9.5,7 9.5,17 12,22" fill="none" stroke="${strokeColor}" stroke-width="2" stroke-linecap="round" />
+        </svg>
+      `;
+    }).join('');
 
     const flavours = coffee.flavours.map(f => `<div>${f}</div>`).join('');
-    const [country, ...nameParts] = [coffee.country, coffee.name];
 
-    return `
-      <div class="card-front" style="background: ${coffee.cardColor};">
-        <div style="position:absolute;top:12px;right:16px;text-align:right;">
-          <div style="font-family:var(--font-mono);font-size:9px;font-weight:700;letter-spacing:1px;color:rgba(0,0,0,0.4);">Nº</div>
-          <div style="font-family:var(--font-display);font-weight:900;font-size:52px;line-height:1;color:rgba(0,0,0,0.2);">${coffee.num}</div>
-        </div>
-        <div class="card-name-block">
-          <div class="card-country">${coffee.country}</div>
-          <div class="card-coffee-name">${coffee.name}</div>
-        </div>
-        <div class="card-cols">
-          <div>
-            <div class="card-label">Roasted:</div>
-            <div class="card-roast-text">${coffee.roastLabel}</div>
-            <div class="bean-pips">${pips}</div>
-          </div>
-          <div>
-            <div class="card-label">Tastes like:</div>
-            <div class="tastes-list">${flavours}</div>
-          </div>
-        </div>
-        <div class="brew-grid">
-          <div class="brew-item">
-            <div class="brew-box checked"></div>
-            Whole Bean
-          </div>
-          <div class="brew-item">
-            <div class="brew-box"></div>
-            Filter | Aeropress
-          </div>
-          <div class="brew-item">
-            <div class="brew-box"></div>
-            Espresso
-          </div>
-          <div class="brew-item">
-            <div class="brew-box"></div>
-            Cafetière
-          </div>
-        </div>
-      </div>
-      <div class="card-rave-footer">
-        <div class="card-rave-logo">RAVE<span class="reg">®</span></div>
-        <div class="card-website">ravecoffee.co.uk</div>
-      </div>
-    `;
-  }
-
-  function buildCardBack(coffee) {
+    // Detailed SVG icons replacing text emojis
     const rows = [
-      { label: 'Grown', icon: '🌱', val: coffee.grown || '—' },
-      { label: 'Altitude', icon: '⛰', val: coffee.altitude || '—' },
-      { label: 'Varietal', icon: '☕', val: coffee.varietal || '—' },
-      { label: 'Process', icon: '💧', val: coffee.process || '—' },
-      { label: 'Producers', icon: '👤', val: coffee.producers || '—' },
+      { 
+        label: 'Grown', 
+        val: coffee.grown || '—',
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M12 20V4" /><path d="M12 9c3-1.5 5.5.5 6.5 2.5-1.5 3-4 3.5-6.5 1.5Z" fill="currentColor" fill-opacity="0.15" /><path d="M12 14c-3-1.5-5.5.5-6.5 2.5 1.5 3 4 3.5 6.5 1.5Z" fill="currentColor" fill-opacity="0.15" /></svg>`
+      },
+      { 
+        label: 'Altitude', 
+        val: coffee.altitude || '—',
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M3 20h18L13 5z" /><path d="M13 20h8l-5-7z" /></svg>`
+      },
+      { 
+        label: 'Varietal', 
+        val: coffee.varietal || '—',
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><path d="M6 1v3M10 1v3M14 1v3" /></svg>`
+      },
+      { 
+        label: 'Process', 
+        val: coffee.process || '—',
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M12 22a7 7 0 0 0 7-7c0-4.3-7-13-7-13S5 10.7 5 15a7 7 0 0 0 7 7z" /></svg>`
+      },
+      { 
+        label: 'Producers', 
+        val: coffee.producers || '—',
+        icon: `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle; flex-shrink: 0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>`
+      }
     ];
     const tableRows = rows.map(r => `
       <div class="back-row">
-        <div class="back-row-label"><span class="back-icon">${r.icon}</span>${r.label}</div>
+        <div class="back-row-label">${r.icon}${r.label}</div>
         <div class="back-row-val">${r.val}</div>
       </div>
     `).join('');
 
-    return `
-      <div class="card-back">
-        <div class="card-back-table" style="background:${coffee.cardColor};">
-          ${tableRows}
-        </div>
-        <div class="roastery-notes">
-          <div class="roastery-title">Roastery Notes:</div>
-          <div class="roastery-text">${coffee.roasteryNotes}</div>
-        </div>
-      </div>
-    `;
-  }
+    const backButtonHTML = fromList ? `
+      <button class="back-to-list-btn" id="back-to-list-btn" style="margin-top: 16px;">
+        ← Back to List
+      </button>
+    ` : '';
 
-  // ── Open single card modal
-  function openCard(coffee) {
-    currentCard = coffee;
-    showingFront = true;
-    renderModal();
-    overlay.classList.add('open');
-  }
-
-  function renderModal() {
-    const frontHTML = buildCardFront(currentCard);
-    const backHTML = buildCardBack(currentCard);
     modalContent.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:12px;align-items:center;">
-        <div class="rave-card" id="card-display">
-          ${showingFront ? frontHTML : backHTML}
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="rave-card">
+          <div class="card-header" style="background: ${coffee.cardColor}; padding: 24px 24px 20px; position: relative;">
+            <div style="position:absolute;top:14px;right:20px;text-align:right;">
+              <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;letter-spacing:1px;color:rgba(0,0,0,0.35);">Nº</div>
+              <div style="font-family:var(--font-display);font-weight:900;font-size:62px;line-height:1;color:rgba(0,0,0,0.22);">${coffee.num}</div>
+            </div>
+            <div class="card-name-block" style="padding-right: 80px; margin-bottom: 20px;">
+              <div class="card-country" style="color: var(--rave-black); font-size: ${coffee.country === 'Blend' ? '28px' : '38px'}; line-height: 1.1;">${coffee.country === 'Blend' ? 'Rave Coffee HQ' : coffee.country}</div>
+              ${coffee.country === 'Blend' ? `<div style="font-family:var(--font-mono); font-size:9.5px; font-weight:700; text-transform:uppercase; color:rgba(0,0,0,0.45); margin-top: 4px; margin-bottom: 2px; letter-spacing: 0.5px; line-height: 1.2;">Phoenix Way, Cirencester, GL7 1QG</div>` : ''}
+              <div class="card-coffee-name" style="color: rgba(0,0,0,0.7);">${coffee.name}</div>
+            </div>
+            <div class="card-cols">
+              <div>
+                <div class="card-label">Roasted:</div>
+                <div class="card-roast-text" style="color: rgba(0,0,0,0.75);">${coffee.roastLabel}</div>
+                <div class="bean-pips">${pips}</div>
+              </div>
+              <div>
+                <div class="card-label">Tastes like:</div>
+                <div class="tastes-list" style="color: rgba(0,0,0,0.8);">${flavours}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body" style="padding: 20px 24px; background: var(--rave-navy);">
+            <div style="margin-bottom: 20px;">
+              ${tableRows}
+            </div>
+            <div class="roastery-notes-section" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+              <div class="roastery-title">Roastery Notes:</div>
+              <div class="roastery-text">${coffee.roasteryNotes}</div>
+            </div>
+          </div>
         </div>
-        <button class="flip-btn" id="flip-btn">
-          ${showingFront ? '↩ See back — Grown, Process, Notes' : '↩ See front — Roast & Flavours'}
-        </button>
+        ${backButtonHTML}
       </div>
     `;
-    document.getElementById('flip-btn').addEventListener('click', () => {
-      showingFront = !showingFront;
-      renderModal();
-    });
+
+    if (fromList) {
+      document.getElementById('back-to-list-btn').addEventListener('click', () => {
+        openList(fromList);
+      });
+    }
+
+    overlay.classList.add('open');
+    updateActivePinHighlight();
   }
 
   // ── Open list modal (multiple coffees at same location)
   function openList(coffees) {
+    document.getElementById('modal-close').style.display = '';
     const items = coffees.map(c => `
       <div class="pin-list-item" data-id="${c.id}">
-        ${c.country} — ${c.name}
+        ${c.country === 'Blend' ? 'Rave Coffee HQ (UK)' : c.country} — ${c.name}
         <span>N°${c.num} · ${c.roastLabel} · ${c.flavours.join(', ')}</span>
       </div>
     `).join('');
+    
+    // Custom label for title depending on if it is a blend or farm
+    const displayTitle = coffees[0].country === 'Blend' 
+      ? 'Rave Coffee HQ (UK)' 
+      : `${coffees[0].country} (${coffees[0].producers})`;
+
     modalContent.innerHTML = `
       <div class="pin-list">
-        <div class="pin-list-title">${coffees[0].country} — ${coffees.length} coffees</div>
+        <div class="pin-list-title">${displayTitle} — ${coffees.length} coffees</div>
         ${items}
       </div>
     `;
     modalContent.querySelectorAll('.pin-list-item').forEach(el => {
       el.addEventListener('click', () => {
         const coffee = COFFEES.find(c => c.id === parseInt(el.dataset.id));
-        if (coffee) openCard(coffee);
+        if (coffee) openCard(coffee, coffees);
       });
     });
     overlay.classList.add('open');
@@ -279,91 +295,104 @@
   // ── Close modal
   document.getElementById('modal-close').addEventListener('click', closeModal);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', (e) => { 
+    if (e.key === 'Escape') {
+      closeModal(); 
+      closeDrawer();
+      closeMobileMenu();
+    } 
+  });
   function closeModal() {
     overlay.classList.remove('open');
     currentCard = null;
+    updateActivePinHighlight();
+    document.getElementById('modal-close').style.display = '';
   }
 
-  // ── Pan + Zoom
-  function applyTransform() {
-    const g1 = document.getElementById('countries');
-    const g2 = document.getElementById('pins');
-    const t = `translate(${tx}px, ${ty}px) scale(${scale})`;
-    g1.style.transform = t;
-    g2.style.transform = t;
-    g1.style.transformOrigin = '0 0';
-    g2.style.transformOrigin = '0 0';
-  }
+  // ── Update active marker dynamic styling and accelerated pulses
+  function updateActivePinHighlight() {
+    markers.forEach(marker => {
+      const el = marker.getElement();
+      if (!el) return;
 
-  svg.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.pin-group')) return;
-    isDragging = true;
-    startX = e.clientX; startY = e.clientY;
-    startTx = tx; startTy = ty;
-    e.preventDefault();
-  });
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    tx = startTx + (e.clientX - startX);
-    ty = startTy + (e.clientY - startY);
-    applyTransform();
-  });
-  window.addEventListener('mouseup', () => { isDragging = false; });
+      const pinRing = el.querySelector('.pin-ring');
+      const pinDot = el.querySelector('.pin-dot');
 
-  svg.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const rect = svg.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const delta = e.deltaY > 0 ? 0.85 : 1.15;
-    const newScale = Math.max(0.6, Math.min(6, scale * delta));
-    tx = mx - (mx - tx) * (newScale / scale);
-    ty = my - (my - ty) * (newScale / scale);
-    scale = newScale;
-    applyTransform();
-  }, { passive: false });
+      const isActive = currentCard && marker.coffeeIds && marker.coffeeIds.includes(currentCard.id);
 
-  // touch
-  let lastDist = null;
-  svg.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 1) {
-      isDragging = true;
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-      startTx = tx; startTy = ty;
-    }
-  }, { passive: true });
-  svg.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 1 && isDragging) {
-      tx = startTx + (e.touches[0].clientX - startX);
-      ty = startTy + (e.touches[0].clientY - startY);
-      applyTransform();
-    } else if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (lastDist) {
-        const delta = dist / lastDist;
-        scale = Math.max(0.6, Math.min(6, scale * delta));
-        applyTransform();
+      if (isActive) {
+        el.classList.add('active-pin');
+        const color = currentCard.cardColor || 'var(--rave-yellow)';
+        
+        if (pinDot) {
+          pinDot.style.backgroundColor = color;
+          pinDot.style.boxShadow = `0 0 14px ${color}`;
+        }
+        
+        if (pinRing) {
+          pinRing.style.borderColor = color;
+          pinRing.style.animation = 'activePinPulse 1.2s infinite cubic-bezier(0.25, 0, 0, 1)';
+        }
+      } else {
+        el.classList.remove('active-pin');
+        
+        if (pinDot) {
+          pinDot.style.backgroundColor = '';
+          pinDot.style.boxShadow = '';
+        }
+        
+        if (pinRing) {
+          pinRing.style.borderColor = '';
+          pinRing.style.animation = '';
+        }
       }
-      lastDist = dist;
-    }
-  }, { passive: true });
-  svg.addEventListener('touchend', () => { isDragging = false; lastDist = null; });
+    });
+  }
 
-  // zoom buttons
-  document.getElementById('zoom-in').addEventListener('click', () => {
-    scale = Math.min(6, scale * 1.3);
-    applyTransform();
-  });
-  document.getElementById('zoom-out').addEventListener('click', () => {
-    scale = Math.max(0.6, scale * 0.77);
-    applyTransform();
-  });
+  // ── Open Info / Disclaimer modal
+  function openDisclaimer() {
+    currentCard = null; // Clear active card state so no pins are highlighted
+    updateActivePinHighlight();
+    document.getElementById('modal-close').style.display = '';
+
+    modalContent.innerHTML = `
+      <div style="display:flex; flex-direction:column; align-items:center;">
+        <div class="rave-card">
+          <div class="card-header" style="background: var(--rave-yellow); padding: 24px; position: relative;">
+            <div class="card-name-block" style="margin-bottom: 0;">
+              <div class="card-country" style="color: var(--rave-black); font-size: 26px; line-height: 1.2;">Project Info</div>
+              <div style="font-family:var(--font-mono); font-size:9.5px; font-weight:700; text-transform:uppercase; color:rgba(0,0,0,0.45); margin-top: 4px; letter-spacing: 0.5px;">Rave Coffee Subscription Journey</div>
+            </div>
+          </div>
+          <div class="card-body" style="padding: 24px; background: var(--rave-navy); color: rgba(255,255,255,0.9); font-size: 13px; line-height: 1.6;">
+            <p style="margin-bottom: 14px;">This is a personal, fan-made interactive mapping dashboard tracking the delicious coffees I have received so far with my <strong>Rave Coffee Subscription</strong>!</p>
+            
+            <div class="roastery-notes-section" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px; margin-bottom: 14px;">
+              <div class="roastery-title" style="color: var(--rave-yellow); font-size: 11px; margin-bottom: 6px;">AI EXPERIMENT & STORY:</div>
+              <div class="roastery-text" style="font-size: 12px; opacity: 0.85;">
+                This project is a fun, personal experiment to try out advanced agentic AI coding capabilities (using <strong>Google Antigravity</strong>, <strong>Gemini Flash</strong>, and <strong>Claude</strong>).
+              </div>
+            </div>
+
+            <div class="roastery-notes-section" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 14px;">
+              <div class="roastery-title" style="color: var(--rave-yellow); font-size: 11px; margin-bottom: 6px;">DATA ACCURACY:</div>
+              <div class="roastery-text" style="font-size: 12px; opacity: 0.85;">
+                Some coffee descriptions, coordinates, or tasting notes may not be completely accurate, as some card texts were generated or completed by Gemini. To see official and correct specifications, please check the <a href="https://ravecoffee.co.uk/" target="_blank" style="color: var(--rave-yellow); text-decoration: underline; font-weight: 700;">official Rave Coffee online shop</a>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    overlay.classList.add('open');
+  }
+
+  // ── Zoom Controls
+  document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+  document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
   document.getElementById('zoom-reset').addEventListener('click', () => {
-    scale = 1; tx = 0; ty = 0;
-    applyTransform();
+    map.setView([15, -10], 2.5);
   });
 
   // ── Filters
@@ -374,10 +403,113 @@
     btn.classList.add('active');
     activeFilter = btn.dataset.filter;
     renderPins();
+    if (drawer.classList.contains('open')) {
+      renderDrawerList();
+    }
+    closeMobileMenu();
+
+    // Auto-fly to continent viewport on mobile!
+    if (window.innerWidth < 768) {
+      const view = CONTINENT_VIEWS[activeFilter];
+      if (view) {
+        map.flyTo(view.center, view.zoom, { duration: 1.2 });
+      }
+    }
+  });
+
+  // ── Sidebar Drawer Logic
+  function openDrawer() {
+    closeMobileMenu();
+    drawer.classList.add('open');
+    document.body.classList.add('drawer-open');
+    renderDrawerList();
+    setTimeout(() => drawerSearch.focus(), 100);
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    document.body.classList.remove('drawer-open');
+  }
+
+  function renderDrawerList() {
+    let coffees = getFilteredCoffees();
+    const query = drawerSearch.value.trim().toLowerCase();
+
+    if (query) {
+      coffees = coffees.filter(c => 
+        c.name.toLowerCase().includes(query) ||
+        c.country.toLowerCase().includes(query) ||
+        c.grown.toLowerCase().includes(query) ||
+        c.flavours.some(f => f.toLowerCase().includes(query)) ||
+        c.roastLabel.toLowerCase().includes(query)
+      );
+    }
+
+    const items = coffees.map(c => `
+      <div class="drawer-item" data-id="${c.id}">
+        <div class="drawer-item-top">
+          <span class="drawer-item-num">N°${c.num}</span>
+          <span class="drawer-item-country">${c.country === 'Blend' ? 'Rave Coffee HQ (UK)' : c.country}</span>
+        </div>
+        <div class="drawer-item-name">${c.name}</div>
+        <div class="drawer-item-meta">
+          <span style="color: var(--rave-yellow); font-weight: 700; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px;">${c.roastLabel}</span>
+          <span style="opacity: 0.85; font-size: 10px;">${c.flavours.slice(0, 2).join(', ')}</span>
+        </div>
+      </div>
+    `).join('');
+
+    drawerList.innerHTML = items || `
+      <div style="text-align:center; padding: 40px 20px; font-family: var(--font-mono); font-size: 11px; opacity: 0.5; color: rgba(255,255,255,0.4);">
+        No coffees found matching "${query}"
+      </div>
+    `;
+
+    drawerList.querySelectorAll('.drawer-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const coffee = COFFEES.find(c => c.id === parseInt(el.dataset.id));
+        if (coffee) {
+          const coords = COFFEE_COORDS[coffee.id] || COFFEE_COORDS[29];
+          map.flyTo(coords, 5.5, { duration: 1.2 });
+          
+          // Open tasting card modal during flight for a highly dynamic interaction
+          setTimeout(() => {
+            openCard(coffee);
+          }, 350);
+        }
+      });
+    });
+  }
+
+  // Mobile Menu Logic
+  function toggleMobileMenu() {
+    menuToggle.classList.toggle('active');
+    headerRight.classList.toggle('open');
+  }
+
+  function closeMobileMenu() {
+    if (menuToggle && headerRight) {
+      menuToggle.classList.remove('active');
+      headerRight.classList.remove('open');
+    }
+  }
+
+  // Bind Drawer & Mobile Menu Event Listeners
+  drawerTrigger.addEventListener('click', openDrawer);
+  drawerClose.addEventListener('click', closeDrawer);
+  drawerSearch.addEventListener('input', renderDrawerList);
+  menuToggle.addEventListener('click', toggleMobileMenu);
+  if (disclaimerTrigger) {
+    disclaimerTrigger.addEventListener('click', openDisclaimer);
+  }
+  
+  map.on('click', () => {
+    closeDrawer();
+    closeMobileMenu();
+    closeModal();
   });
 
   // ── Init
   renderPins();
-  applyTransform();
 
 })();
