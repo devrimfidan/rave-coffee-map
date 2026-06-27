@@ -578,5 +578,41 @@ const COFFEES = [
     process: "Washed",
     producers: "Gito washing station",
     roasteryNotes: "Gito washing station sits at over 1,800m in Rwanda's Southern Province, producing Red Bourbon coffees of exceptional depth. The 'Bourbon' in the tasting notes isn't the whiskey — it refers to the Bourbon variety itself, which has a distinctive warm, winey character when grown at altitude."
+  },
+  {
+    id: 33,
+    num: 363,
+    country: "Ethiopia",
+    name: "Ky Kebero",
+    roast: 3, roastLabel: "Medium",
+    flavours: ["Chocolate", "Baked Peach", "Brown Sugar"],
+    region: "Africa",
+    coords: { x: 569, y: 268 },
+    cardColor: "#C89840",
+    backColor: "#1E2B4A",
+    grown: "Sidama",
+    altitude: "1,900m – 2,100m",
+    varietal: "Heirloom",
+    process: "Washed",
+    producers: "Smallholders",
+    roasteryNotes: "This coffee is named after the Amharic word for Ethiopian wolf. This particular species is Africa's most endangered carnivore. But over 150 of the remaining animals roam the Bale Mountains just to the west of where this coffee is grown. Coffees from this region are renowned for their sweet chocolate, citrus and floral character. Roasting to a medium level has developed the sweetness and body of this coffee, making it a great espresso. A filter-style brew will bring out those floral notes and stone fruit flavour. *A donation to the Ethiopian Wolf Conservation Programme was made when we purchased this coffee."
+  },
+  {
+    id: 34,
+    num: 358,
+    country: "Colombia",
+    name: "Cencoic Tacueyo",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Chocolate Ganache", "Praline", "Blackcurrant"],
+    region: "Americas",
+    coords: { x: 240, y: 264 },
+    cardColor: "#A4C8D8",
+    backColor: "#1E2B4A",
+    grown: "Toribío, Northern Cauca",
+    altitude: "1,400m – 2,200m",
+    varietal: "Colombia, Caturra, Typica & Castillo",
+    process: "Washed",
+    producers: "500 Smallholders",
+    roasteryNotes: "The Nasa people of Tacueyó view land as sacred, shaping coffee farming as both a spiritual and economic practice. Through the CENCOIC cooperative, farmers access global markets while preserving their traditions and environmental values. Coffee production supports community development, sustainability, and cultural identity, offering a stable livelihood that strengthens autonomy and peace. The coffees are sweet, balanced with a vibrant cup profile. The dark roasting makes this coffee punchy, full-bodied and with the richness of dark chocolate ganache."
   }
 ];

@@ -58,7 +58,9 @@
     29: [51.71195, -1.97025], // Blend: Espresso Blend (Rave HQ UK)
     30: [51.71195, -1.97025], // Blend: Mocha Java Blend (Rave HQ - EXACT MATCH)
     31: [51.71195, -1.97025], // Blend: The Italian Job (Rave HQ - EXACT MATCH)
-    32: [-2.48, 29.47]       // Rwanda: Gito (Nyamagabe)
+    32: [-2.48, 29.47],       // Rwanda: Gito (Nyamagabe)
+    33: [6.70, 38.50],        // Ethiopia: Ky Kebero (Sidama)
+    34: [2.95, -76.25]        // Colombia: Cencoic Tacueyo (Toribío, Northern Cauca)
   };
 
   // ── Continent Viewport Coordinates for Mobile Fly-To Transitions
