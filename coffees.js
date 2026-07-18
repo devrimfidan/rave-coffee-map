@@ -614,5 +614,23 @@ const COFFEES = [
     process: "Washed",
     producers: "500 Smallholders",
     roasteryNotes: "The Nasa people of Tacueyó view land as sacred, shaping coffee farming as both a spiritual and economic practice. Through the CENCOIC cooperative, farmers access global markets while preserving their traditions and environmental values. Coffee production supports community development, sustainability, and cultural identity, offering a stable livelihood that strengthens autonomy and peace. The coffees are sweet, balanced with a vibrant cup profile. The dark roasting makes this coffee punchy, full-bodied and with the richness of dark chocolate ganache."
+  },
+  {
+    id: 35,
+    num: 365,
+    country: "DR Congo",
+    name: "Majirane",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Dark Chocolate", "Cinnamon", "Baked Apple"],
+    region: "Africa",
+    coords: { x: 0, y: 0 }, // DRC (legacy field, unused by map)
+    cardColor: "#C3A039", // mustard/gold
+    backColor: "#1E2B4A",
+    grown: "Buchiro, Kalehe Territory, South Kivu Province",
+    altitude: "1,485m – 2,186m",
+    varietal: "Bourbon",
+    process: "Washed",
+    producers: "500 producing families",
+    roasteryNotes: "This young cooperative situated on the steep banks of Lake Kivu in the Democratic Republic of the Congo (DRC), is working to give women in South Kivu a stronger voice and fair recognition in coffee farming, while also using coffee planting to help restore forests and fight climate change. DRC coffee is renowned for its vibrant, complex, and fruit forward flavour profiles. Grown in the rich volcanic soils and high altitudes of the Great Rift Valley."
   }
 ];

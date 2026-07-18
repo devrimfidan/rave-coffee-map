@@ -66,6 +66,7 @@ Below is the log of the coffees received and tracked so far on my journey:
 | 354 | Nyamsheke Hell's | Rwanda | Medium | Blackberry, Apricot, Maple Syrup |
 | 358 | Cencoic Tacueyo | Colombia | Dark | Chocolate Ganache, Praline, Blackcurrant |
 | 363 | Ky Kebero | Ethiopia | Medium | Chocolate, Baked Peach, Brown Sugar |
+| 365 | Majirane | DR Congo | Dark | Dark Chocolate, Cinnamon, Baked Apple |
 
 ---
 
