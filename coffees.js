@@ -617,20 +617,39 @@ const COFFEES = [
   },
   {
     id: 35,
-    num: 365,
-    country: "DR Congo",
-    name: "Majirane",
-    roast: 5, roastLabel: "Dark",
-    flavours: ["Dark Chocolate", "Cinnamon", "Baked Apple"],
-    region: "Africa",
-    coords: { x: 0, y: 0 }, // DRC (legacy field, unused by map)
-    cardColor: "#C3A039", // mustard/gold
+    num: 370,
+    country: "Guatemala",
+    name: "Santa Elisa",
+    roast: 3, roastLabel: "Medium",
+    flavours: ["Milk Chocolate", "Pear", "Sugar Cane"],
+    region: "Americas",
+    coords: { x: 199, y: 258 }, // Guatemala (offset)
+    cardColor: "#E0557A", // bright pink/magenta — matches card colour
     backColor: "#1E2B4A",
-    grown: "Buchiro, Kalehe Territory, South Kivu Province",
-    altitude: "1,485m – 2,186m",
-    varietal: "Bourbon",
+    grown: "San Pedro Yepocapa, Acatenango",
+    altitude: "1,200m – 1,700m",
+    varietal: "Various",
     process: "Washed",
-    producers: "500 producing families",
-    roasteryNotes: "This young cooperative situated on the steep banks of Lake Kivu in the Democratic Republic of the Congo (DRC), is working to give women in South Kivu a stronger voice and fair recognition in coffee farming, while also using coffee planting to help restore forests and fight climate change. DRC coffee is renowned for its vibrant, complex, and fruit forward flavour profiles. Grown in the rich volcanic soils and high altitudes of the Great Rift Valley."
+    producers: "Finca Santa Elisa Estate",
+    roasteryNotes: "Grown in volcanic soils in Guatemala's Acatenango region, this coffee from Santa Elisa is a complete and well balanced classic. Roasted to highlight the natural sweetness, subtle fresh fruit notes and honeyed florals. During the sugar browning phase of roasting, this coffee develops a rich milk chocolate flavour that makes it a versatile and accessible brew!"
+  },
+  {
+    id: 36,
+    num: 355,
+    country: "India",
+    name: "Cauvery Estate",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Cocoa", "Roasted Almond", "Treacle"],
+    region: "Asia",
+    coords: { x: 683, y: 248 }, // India (offset from Monsoon Malabar)
+    cardColor: "#7A8C4A", // olive/army green — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Shevaroys, Tamil Nadu",
+    altitude: "1,500m – 1,600m",
+    varietal: "S795",
+    process: "Washed",
+    producers: "Ramesh Family",
+    roasteryNotes: "This coffee is traditional in every aspect. Grown in the optimal conditions of the Sheravoy Hills, home to rich soils and high altitudes. The coffee cherries are processed using the washed method, encouraging a more classic and balanced flavour profile. While this coffee is roasted dark, you might notice a lighter bean colour. However, the flavour notes are typically dark. Think cocoa, roasted almonds, and a dark syrupy treacle."
   }
 ];
+
