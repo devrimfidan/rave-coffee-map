@@ -650,6 +650,42 @@ const COFFEES = [
     process: "Washed",
     producers: "Ramesh Family",
     roasteryNotes: "This coffee is traditional in every aspect. Grown in the optimal conditions of the Sheravoy Hills, home to rich soils and high altitudes. The coffee cherries are processed using the washed method, encouraging a more classic and balanced flavour profile. While this coffee is roasted dark, you might notice a lighter bean colour. However, the flavour notes are typically dark. Think cocoa, roasted almonds, and a dark syrupy treacle."
+  },
+  {
+    id: 37,
+    num: 376,
+    country: "El Salvador",
+    name: "El Molino Honey",
+    roast: 3, roastLabel: "Medium",
+    flavours: ["Light Caramel", "Apricot", "Milk Chocolate"],
+    region: "Americas",
+    coords: { x: 202, y: 256 }, // El Salvador — Central America
+    cardColor: "#9C3F62", // dark pink/burgundy — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Concepción de Ataco, Ahuachapán",
+    altitude: "1,350m – 1,700m",
+    varietal: "Bourbon, HSF, Pacas, Caturra, Catuai",
+    process: "Honey",
+    producers: "Salaverría Family",
+    roasteryNotes: "El Molino is a coffee farm in Concepción de Ataco, western El Salvador, a region known for producing exceptional coffee thanks to its high altitude, volcanic soil and cool climate. Managed by Tomas Mendoza, El Molino is now used primarily for drying coffee during the harvest, while processing takes place at Jasal's Las Cruces facility. Roasted to a medium level for our Discovery Subscription, this coffee offers a classic smooth and sweet flavour profile with notes of light caramel, apricot and smooth milk chocolate."
+  },
+  {
+    id: 38,
+    num: 375,
+    country: "Uganda",
+    name: "Bujuku",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Cranberry", "Cinnamon", "Dark Chocolate"],
+    region: "Africa",
+    coords: { x: 545, y: 277 }, // Uganda (offset from Clarke Farm entries)
+    cardColor: "#8C7A3A", // dark khaki/olive gold — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Rwenzori Mountains",
+    altitude: "1,200m – 2,000m",
+    varietal: "Nyasaland, SL14 & SL28",
+    process: "Natural",
+    producers: "Smallholder Farmers",
+    roasteryNotes: "This coffee comes from smallholder farmers in Uganda's high-altitude Rwenzori Mountains, where fertile volcanic soils and abundant rainfall create ideal growing conditions. Naturally processed using the traditional DRUGAR method, it offers a rich body, bright fruit sweetness and a bold, expressive cup, with notes of dark chocolate, cranberry, and cinnamon."
   }
 ];
 
