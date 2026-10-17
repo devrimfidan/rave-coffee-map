@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#F5C842"/>
+  <!-- Map pin -->
+  <path d="M256 420 C 220 360, 136 300, 136 220 A 120 120 0 1 1 376 220 C 376 300, 292 360, 256 420 Z" fill="#1a1612"/>
+  <!-- Coffee bean -->
+  <g transform="translate(256 220) rotate(-30)">
+    <ellipse rx="52" ry="74" fill="#F5C842"/>
+    <path d="M0 -66 C -26 -30, 26 30, 0 66" fill="none" stroke="#1a1612" stroke-width="12" stroke-linecap="round"/>
+  </g>
+</svg>
