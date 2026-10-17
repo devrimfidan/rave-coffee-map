@@ -64,9 +64,12 @@ Below is the log of the coffees received and tracked so far on my journey:
 | 343 | Tarime Natural | Tanzania | Medium/Dark | Shortbread, Vanilla, Red Cherry Jam |
 | 353 | Kebena | Ethiopia | Dark | Cherry, Dried Fruit, Dark Chocolate |
 | 354 | Nyamsheke Hell's | Rwanda | Medium | Blackberry, Apricot, Maple Syrup |
+| 355 | Cauvery Estate | India | Dark | Cocoa, Roasted Almond, Treacle |
 | 358 | Cencoic Tacueyo | Colombia | Dark | Chocolate Ganache, Praline, Blackcurrant |
 | 363 | Ky Kebero | Ethiopia | Medium | Chocolate, Baked Peach, Brown Sugar |
-| 365 | Majirane | DR Congo | Dark | Dark Chocolate, Cinnamon, Baked Apple |
+| 370 | Santa Elisa | Guatemala | Medium | Milk Chocolate, Pear, Sugar Cane |
+| 375 | Bujuku | Uganda | Dark | Cranberry, Cinnamon, Dark Chocolate |
+| 376 | El Molino Honey | El Salvador | Medium | Light Caramel, Apricot, Milk Chocolate |
 
 ---
 
