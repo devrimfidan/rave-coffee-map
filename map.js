@@ -64,7 +64,9 @@
     35: [14.47, -90.94],      // Guatemala: Santa Elisa (San Pedro Yepocapa, Acatenango)
     36: [11.80, 78.23],       // India: Cauvery Estate (Shevaroys, Tamil Nadu)
     37: [13.83, -89.85],      // El Salvador: El Molino Honey (Concepción de Ataco, Ahuachapán)
-    38: [0.35, 30.00]         // Uganda: Bujuku (Rwenzori Mountains)
+    38: [0.35, 30.00],        // Uganda: Bujuku (Rwenzori Mountains)
+    39: [14.15, -88.03],      // Honduras: Aprocomsa Honey (Marcala, La Paz)
+    40: [-6.02, 144.97]       // Papua New Guinea: Kongo (Simbu Province)
   };
 
   // ── Continent Viewport Coordinates for Mobile Fly-To Transitions

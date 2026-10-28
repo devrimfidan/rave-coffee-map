@@ -686,6 +686,41 @@ const COFFEES = [
     process: "Natural",
     producers: "Smallholder Farmers",
     roasteryNotes: "This coffee comes from smallholder farmers in Uganda's high-altitude Rwenzori Mountains, where fertile volcanic soils and abundant rainfall create ideal growing conditions. Naturally processed using the traditional DRUGAR method, it offers a rich body, bright fruit sweetness and a bold, expressive cup, with notes of dark chocolate, cranberry, and cinnamon."
+  },
+  {
+    id: 39,
+    num: 378,
+    country: "Honduras",
+    name: "Aprocomsa Honey",
+    roast: 3, roastLabel: "Medium",
+    flavours: ["Maple Syrup", "Plum", "Macadamia"],
+    region: "Americas",
+    coords: { x: 203, y: 238 }, // Honduras
+    cardColor: "#D9285E", // raspberry pink — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Marcala",
+    altitude: "1,200m – 1,700m",
+    varietal: "Catuai, Caturra, Pacas, Parainema",
+    process: "Honey",
+    producers: "Smallholders",
+    roasteryNotes: "This honey-processed lot from Honduras is produced with environmental sustainability in mind. The coffee cherries are pulped without water and dried with the fruit mucilage intact. This method contributes to the distinct and sweet taste profile of the final coffee and also relies as little as possible on valuable local water sources. This coffee has been roasted to highlight this sweetness and the result is a syrupy, full-bodied cup."
+  },
+  {
+    id: 40,
+    num: 377,
+    country: "Papua New Guinea",
+    name: "Kongo",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Toffee", "Black Cherry", "Dark Chocolate"],
+    region: "Asia",
+    coords: { x: 874, y: 283 }, // Papua New Guinea
+    cardColor: "#A9B24A", // olive/lime green — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Simbu Province",
+    altitude: "1,400m – 1,900m",
+    varietal: "Arusha, Bourbon & Typica",
+    process: "Washed",
+    producers: "Smallholders",
+    roasteryNotes: "Kongo Coffee is located in Simbu Province, the third largest province in Papua New Guinea. The company was established in 1999, supporting local smallholder farmers with coffee buying, processing, roasting and exporting, while also contributing to the wider community through numerous projects. Roasted to a more traditional, dark profile, this coffee has notes of dark chocolate and toffee sweetness, with a pleasant black cherry fruit flavour."
   }
 ];
-

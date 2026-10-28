@@ -70,6 +70,8 @@ Below is the log of the coffees received and tracked so far on my journey:
 | 370 | Santa Elisa | Guatemala | Medium | Milk Chocolate, Pear, Sugar Cane |
 | 375 | Bujuku | Uganda | Dark | Cranberry, Cinnamon, Dark Chocolate |
 | 376 | El Molino Honey | El Salvador | Medium | Light Caramel, Apricot, Milk Chocolate |
+| 377 | Kongo | Papua New Guinea | Dark | Toffee, Black Cherry, Dark Chocolate |
+| 378 | Aprocomsa Honey | Honduras | Medium | Maple Syrup, Plum, Macadamia |
 
 ---
 
