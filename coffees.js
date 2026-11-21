@@ -722,5 +722,41 @@ const COFFEES = [
     process: "Washed",
     producers: "Smallholders",
     roasteryNotes: "Kongo Coffee is located in Simbu Province, the third largest province in Papua New Guinea. The company was established in 1999, supporting local smallholder farmers with coffee buying, processing, roasting and exporting, while also contributing to the wider community through numerous projects. Roasted to a more traditional, dark profile, this coffee has notes of dark chocolate and toffee sweetness, with a pleasant black cherry fruit flavour."
+  },
+  {
+    id: 41,
+    num: 392,
+    country: "Nicaragua",
+    name: "Matagalpa",
+    roast: 5, roastLabel: "Dark",
+    flavours: ["Muscovado Sugar", "Cocoa", "Chestnut"],
+    region: "Americas",
+    coords: { x: 209, y: 241 }, // Nicaragua
+    cardColor: "#C2334A", // crimson red — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Matagalpa",
+    altitude: "1,300m – 1,600m",
+    varietal: "Various",
+    process: "Washed",
+    producers: "Smallholders",
+    roasteryNotes: "Nicaragua has a turbulent history, but today it's making positive strides in social welfare and coffee production. Thanks to the vision of pioneering farmers and initiatives such as the Cup of Excellence and the Nicaraguan Specialty Coffee Association, the country is gaining recognition for the exceptional quality of its speciality coffees. Grown in the highlands of Matagalpa, this coffee is rich and bold, with notes of Muscovado sugar, cocoa and chestnut."
+  },
+  {
+    id: 42,
+    num: 381,
+    country: "Uganda",
+    name: "Bukonzo",
+    roast: 3, roastLabel: "Medium",
+    flavours: ["Apple", "Blackcurrant", "Dark Chocolate"],
+    region: "Africa",
+    coords: { x: 543, y: 269 }, // Uganda
+    cardColor: "#C39A5A", // kraft tan/gold — matches card colour
+    backColor: "#1E2B4A",
+    grown: "Rwenzori Mountains",
+    altitude: "1,800m – 2,000m",
+    varietal: "SL14, SL28",
+    process: "Washed",
+    producers: "Numerous Smallholders",
+    roasteryNotes: "Bukonzo Organic Farmers Co-operative Union was established in 2009 to help farmers in Uganda's Rwenzori Mountains get a better price for their coffee. The region has excellent conditions for growing Arabica, and Bukonzo has invested in dozens of local micro-washing stations, giving farmers the facilities to produce high-quality, fully washed coffees. This lot is clean and vibrant, with notes of apple, blackcurrant and dark chocolate."
   }
 ];

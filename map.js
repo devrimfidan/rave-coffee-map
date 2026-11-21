@@ -66,7 +66,9 @@
     37: [13.83, -89.85],      // El Salvador: El Molino Honey (Concepción de Ataco, Ahuachapán)
     38: [0.35, 30.00],        // Uganda: Bujuku (Rwenzori Mountains)
     39: [14.15, -88.03],      // Honduras: Aprocomsa Honey (Marcala, La Paz)
-    40: [-6.02, 144.97]       // Papua New Guinea: Kongo (Simbu Province)
+    40: [-6.02, 144.97],      // Papua New Guinea: Kongo (Simbu Province)
+    41: [12.92, -85.92],      // Nicaragua: Matagalpa N°392 (Matagalpa - EXACT MATCH)
+    42: [0.35, 30.00]         // Uganda: Bukonzo (Rwenzori Mountains - EXACT MATCH)
   };
 
   // ── Continent Viewport Coordinates for Mobile Fly-To Transitions
